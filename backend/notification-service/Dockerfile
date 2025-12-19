@@ -1,5 +1,5 @@
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk
 WORKDIR /app
 COPY target/*.jar app.jar
-EXPOSE 8087
+EXPOSE 8088
 ENTRYPOINT ["java", "-jar", "app.jar"]
