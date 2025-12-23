@@ -38,6 +38,7 @@
         <module>payment-service</module>
         <module>notification-service</module>
         <module>common-lib</module>
+        <module>common-security</module>
     </modules>
 
     <!-- ✅ Dependency Management (ONLY BOMs) -->

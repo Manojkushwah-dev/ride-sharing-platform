@@ -4,26 +4,33 @@ server:
 spring:
   application:
     name: api-gateway
-
+  config:
+    import: "optional:configserver:http://config-server:8888"
+  main:
+    web-application-type: reactive
   cloud:
     gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
       routes:
-        - id: user-service
-          uri: lb://user-service
-          predicates:
-            - Path=/users/**
         - id: auth-service
           uri: lb://auth-service
           predicates:
-            - Path=/auth/** 
-        - id: driver-service
-          uri: lb://driver-service
-          predicates:
-            - Path=/drivers/**
+            - Path=/auth/**
         - id: ride-service
           uri: lb://ride-service
           predicates:
             - Path=/rides/**
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/users/**
+        - id: driver-service
+          uri: lb://driver-service
+          predicates:
+            - Path=/drivers/**
         - id: pricing-service
           uri: lb://pricing-service
           predicates:
@@ -41,3 +48,5 @@ eureka:
   client:
     service-url:
       defaultZone: http://discovery-server:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true

@@ -5,6 +5,9 @@ spring:
   application:
     name: driver-service
 
+  config:
+    import: optional:configserver:http://config-server:8888
+
   datasource:
     url: jdbc:mysql://mysql:3306/rideshare_db
     username: root

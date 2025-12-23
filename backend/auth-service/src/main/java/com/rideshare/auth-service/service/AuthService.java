@@ -1,10 +1,10 @@
 package com.rideshare.authservice.service;
 
-import com.rideshare.authservice.config.JwtUtil;
 import com.rideshare.authservice.dto.*;
 import com.rideshare.authservice.model.UserAuth;
 import com.rideshare.authservice.repository.UserAuthRepository;
 import lombok.RequiredArgsConstructor;
+import com.rideshare.common.security.JwtUtil;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +19,6 @@ public class AuthService {
     private final JwtUtil jwtUtil;
 
     public AuthResponse register(RegisterRequest request) {
-
         if (repository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already registered");
         }
@@ -29,21 +28,23 @@ public class AuthService {
                 .password(encoder.encode(request.getPassword()))
                 .role(request.getRole())
                 .createdAt(LocalDateTime.now())
+                .enabled(true)
                 .build();
 
         repository.save(user);
 
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+        // Convert Enum to String for JwtUtil
+        String roleStr = user.getRole().name();
+        String token = jwtUtil.generateToken(user.getEmail(), roleStr);
 
         return AuthResponse.builder()
                 .email(user.getEmail())
-                .role(user.getRole().name())
+                .role(roleStr)
                 .token(token)
                 .build();
     }
 
     public AuthResponse login(LoginRequest request) {
-
         UserAuth user = repository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Invalid credentials"));
 
@@ -51,11 +52,13 @@ public class AuthService {
             throw new RuntimeException("Invalid credentials");
         }
 
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+        // Convert Enum to String for JwtUtil
+        String roleStr = user.getRole().name();
+        String token = jwtUtil.generateToken(user.getEmail(), roleStr);
 
         return AuthResponse.builder()
                 .email(user.getEmail())
-                .role(user.getRole().name())
+                .role(roleStr)
                 .token(token)
                 .build();
     }

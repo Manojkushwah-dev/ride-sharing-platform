@@ -27,7 +27,13 @@ public class UserAuth {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Builder.Default // Fixes the compilation warning
     private boolean enabled = true;
 
     private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
 }
