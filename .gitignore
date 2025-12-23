@@ -1,0 +1,25 @@
+# Maven
+target/
+*.log
+*.tmp
+*.bak
+*.swp
+
+# Eclipse / IntelliJ IDEA
+/.idea/
+/*.iml
+/.classpath
+/.project
+/.settings/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Spring Boot / application
+*.yml
+*.properties
+
+# Docker
+Dockerfile
+docker-compose.override.yml
