@@ -1,0 +1,52 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  config:
+    import: "optional:configserver:http://config-server:8888"
+  main:
+    web-application-type: reactive
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/auth/**
+        - id: ride-service
+          uri: lb://ride-service
+          predicates:
+            - Path=/rides/**
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/users/**
+        - id: driver-service
+          uri: lb://driver-service
+          predicates:
+            - Path=/drivers/**
+        - id: pricing-service
+          uri: lb://pricing-service
+          predicates:
+            - Path=/pricing/**
+        - id: payment-service
+          uri: lb://payment-service
+          predicates:
+            - Path=/payments/**
+        - id: notification-service
+          uri: lb://notification-service
+          predicates:
+            - Path=/notifications/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-server:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
