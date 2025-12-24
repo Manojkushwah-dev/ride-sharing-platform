@@ -9,7 +9,7 @@ spring:
       server:
         git:
           uri: https://github.com/Manojkushwah-dev/ride-sharing-platform
-          search-paths: 'config-repo'
+          search-paths: 'backend/config-repo'
           clone-on-start: true
           default-label: main
 
