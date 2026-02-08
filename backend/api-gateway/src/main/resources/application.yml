@@ -8,53 +8,83 @@ spring:
     web-application-type: reactive
   cloud:
     gateway:
+      # Global CORS Configuration
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "http://localhost:3000"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+
       discovery:
         locator:
           enabled: true
           lower-case-service-id: true
       routes:
+        # --- Authentication Service ---
         - id: auth-service
           uri: lb://auth-service
           predicates:
             - Path=/api/auth/**
           filters:
             - RewritePath=/api/auth/(?<segment>.*), /api/auth/${segment}
-            
+
+        # --- Ride Service (REST API) ---
         - id: ride-service
           uri: lb://ride-service
           predicates:
             - Path=/api/rides/**
           filters:
             - RewritePath=/api/rides/(?<segment>.*), /api/rides/${segment}
-            
+
+        # --- Ride Service (WebSocket / Kafka) --- 
+        # <--- THIS IS THE NEW ROUTE YOU WERE MISSING
+        - id: ride-service-ws
+          uri: lb://ride-service
+          predicates:
+            - Path=/kafka/**
+          filters:
+            - RewritePath=/kafka/(?<segment>.*), /${segment}
+
+        # --- User Service ---
         - id: user-service
           uri: lb://user-service
           predicates:
             - Path=/api/users/**
           filters:
             - RewritePath=/api/users/(?<segment>.*), /api/v1/users/${segment}
-            
+
+        # --- Driver Service ---
         - id: driver-service
           uri: lb://driver-service
           predicates:
             - Path=/api/drivers/**
           filters:
             - RewritePath=/api/drivers/(?<segment>.*), /drivers/${segment}
-            
+
+        # --- Pricing Service ---
         - id: pricing-service
           uri: lb://pricing-service
           predicates:
             - Path=/api/pricing/**
           filters:
             - RewritePath=/api/pricing/(?<segment>.*), /pricing/${segment}
-            
+
+        # --- Payment Service ---
         - id: payment-service
           uri: lb://payment-service
           predicates:
             - Path=/api/payments/**
           filters:
             - RewritePath=/api/payments/(?<segment>.*), /payments/${segment}
-            
+
+        # --- Notification Service ---
         - id: notification-service
           uri: lb://notification-service
           predicates:

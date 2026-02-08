@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.UUID; // Added UUID import
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +22,6 @@ public class UserService {
     private final UserRatingRepository ratingRepo;
 
     public UserProfile createProfile(String name, String email, String phone, String role) {
-        // Check if user already exists
         if (profileRepo.findByEmail(email).isPresent()) {
             throw new RuntimeException("User already exists");
         }
@@ -34,19 +33,18 @@ public class UserService {
                 .role(role)
                 .rating(5.0)
                 .totalRides(0)
-                .createdAt(LocalDateTime.now())
+                .createdAt(LocalDateTime.now())   // OK (assuming profile doesn’t use @CreationTimestamp)
                 .updatedAt(LocalDateTime.now())
                 .build();
 
         UserProfile saved = profileRepo.save(profile);
 
-        // Create wallet for new user
+        // ✅ Create wallet WITHOUT timestamps (Hibernate handles them)
         UserWallet wallet = UserWallet.builder()
                 .userId(saved.getId())
                 .balance(BigDecimal.ZERO)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
+
         walletRepo.save(wallet);
 
         return saved;
@@ -55,7 +53,6 @@ public class UserService {
     public UserProfile getProfile(String email) {
         return profileRepo.findByEmail(email)
                 .orElseGet(() -> {
-                    // Auto-create default profile if user not found
                     UserProfile defaultProfile = UserProfile.builder()
                             .email(email)
                             .name("User")
@@ -65,18 +62,17 @@ public class UserService {
                             .createdAt(LocalDateTime.now())
                             .updatedAt(LocalDateTime.now())
                             .build();
-                    
+
                     UserProfile saved = profileRepo.save(defaultProfile);
-                    
-                    // Create wallet for new user
+
+                    // ✅ Wallet creation without timestamps
                     UserWallet wallet = UserWallet.builder()
                             .userId(saved.getId())
                             .balance(BigDecimal.ZERO)
-                            .createdAt(LocalDateTime.now())
-                            .updatedAt(LocalDateTime.now())
                             .build();
+
                     walletRepo.save(wallet);
-                    
+
                     return saved;
                 });
     }
@@ -93,7 +89,7 @@ public class UserService {
 
     public UserWallet getWallet(String email) {
         UserProfile profile = getProfile(email);
-        // profile.getId() now returns UUID, which matches walletRepo
+
         return walletRepo.findByUserId(profile.getId())
                 .orElseThrow(() -> new RuntimeException("Wallet not found"));
     }
@@ -101,15 +97,15 @@ public class UserService {
     public UserWallet addMoney(String email, WalletAddRequest request) {
         UserProfile profile = getProfile(email);
 
-        // profile.getId() returns UUID
         return walletRepo.findByUserId(profile.getId())
                 .map(wallet -> {
                     BigDecimal amount = request.getAmount();
                     if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
                         throw new IllegalArgumentException("Amount must be positive");
                     }
+
                     wallet.setBalance(wallet.getBalance().add(amount));
-                    wallet.setUpdatedAt(LocalDateTime.now());
+                    // ❌ REMOVE manual updatedAt — Hibernate auto-updates it
                     return walletRepo.save(wallet);
                 })
                 .orElseThrow(() -> new RuntimeException("Wallet not found"));
@@ -119,7 +115,7 @@ public class UserService {
         UserProfile profile = getProfile(email);
 
         UserRating rating = UserRating.builder()
-                .userId(profile.getId()) // Ensure UserRating model uses UUID for userId
+                .userId(profile.getId()) // ensure UserRating uses UUID
                 .rideId(request.getRideId())
                 .rating(request.getRating())
                 .comment(request.getComment())
